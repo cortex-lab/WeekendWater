@@ -1,13 +1,11 @@
 function [data, skipped] = getWeekendWater(ai, nDaysInFuture, exclude)
-
+% WW.GETWEEKENDWATER Builds a table of water amounts and posts to Alyx
 if nargin<2
     nDaysInFuture = 2;
 end
 if nargin<3
     exclude = struct;
 end
-% ai = Alyx instance
-
 if nargin < 1 || isempty(ai) || ~ai.IsLoggedIn
     ai = Alyx;
 end
@@ -76,12 +74,5 @@ end
 %%% FOR DEBUGGING %%%
 save getWeekendWaterVars.mat
 %%%
-% keyboard
 % collect the data for the table
 data = table(animalName, prcWeightToday, giveWater);
-
-% gW = mat2cell(giveWater, size(giveWater, 1), ones(1, size(giveWater, 2)));
-% data = table(animalName, prcWeightToday, gW{1}, gW{2})
-%     mat2cell(giveWater, size(giveWater, 1), size(giveWater, 2)))
-
-

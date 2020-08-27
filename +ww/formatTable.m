@@ -1,4 +1,14 @@
-function out = printWeekendWater(data, format)
+function out = formatTable(data, format)
+% WW.FORMATTABLE Returns and/or saves the water table in a given format
+%  Returns tabular data in a number of optional formats.  Note: Only 'html'
+%  is currently used and supported.
+%
+%  Inputs:
+%    data (table): A table of Subject names, percent weights and water
+%                  amounts for given dates
+%    format (char): Formats include 'png', 'tsv', 'html'.  If no format is 
+%                   specified, a tab separated string is returned.  If
+%                   'tsv' a file is also saved to disk.
 
 if nargin == 1; format = ''; end
 dataInCells = table2cell(data);
@@ -7,17 +17,16 @@ nDays = size(dataInCells{1, 3}, 2);
 nAnimals = height(data);
 waterAmounts = reshape([dataInCells{:, 3}], nDays, nAnimals)';
 dataInCells = cat(2, dataInCells(:, 1:2), waterAmounts);
-%%
 columnHeaders = {'  Animal  '; ['  Weight % on ', datestr(now, 'dddd  ')]};
 for iDay = 1:nDays
     columnHeaders{iDay+2} = datestr(now+iDay, '  ddd, dd-mmm-yyyy  ');
 end
-switch format
+switch lower(format)
     case 'png'
         hFig = figure;
         hTable = uitable(hFig, 'Data', dataInCells);
         hTable.ColumnName = columnHeaders;
-        %% Fit the table nicely inside the figure
+        % Fit the table nicely inside the figure
         hTable.Units = 'normalized';
         hTable.FontWeight = 'bold';
         hTable.Position = [0 0 1 1];
@@ -28,25 +37,19 @@ switch format
         pos(3) = pos(3)*extent(3);
         pos(4) = pos(4)*extent(4);
         hTable.Parent.Position = pos;
-        out = print(hFig, 'water', '-dpng', '-r300');
-        % print(hFig, 'water', '-dpdf', '-r300', '-bestfit')
-        
+        out = print(hFig, 'water', '-dpng', '-r300');        
     case 'tsv'
-        fid = fopen('~/weekend_water_script/water.tsv', 'wt');
+        filename = fullfile(iff(ispc, getenv('APPDATA'), getenv('HOME')), 'water.tsv');
+        fid = fopen(filename, 'wt');
         out = strrep(evalc('disp(dataInCells)'), '\n', '\r');
         fwrite(fid, out);
         fclose(fid);
-        %    system('cat ~/weekend_water_script/water.tsv | netcat -w 1 128.40.198.220 9100');
     case 'html'
         dataInCells(cellfun('isempty', dataInCells)) = {' '};
-        %     out = ['<table><tr><th>Mouse Name</th><th>% Weight</th>'];
+        % Print the headers
         out = ['<table style="width:100%"><tr><th style="padding:5px">', ...
             strjoin(strip(columnHeaders), '</th><th style="padding:5px">'), '</th></tr>'];
-        %     for k = 1:length(nDays)
-        %       [~, dayName] = weekday(now+k, 'long');
-        %       out = [out, '<th>', dayName, '</th>'];
-        %     end
-        %     out = [out, '</tr>'];
+        % Print each row
         for i = 1:size(dataInCells,1)
             out = [out, '<tr><td style="padding:5px">', strjoin(dataInCells(i,:), ...
                 '</td><td style="padding:5px">'), '</td></tr>'];
@@ -56,13 +59,6 @@ switch format
         save printWeekendWaterVars.mat
         %%%
     otherwise
-        %     dataInCells(cellfun('isempty', dataInCells)) = {'--'};
-        %     out = [dataInCells, repmat({'\r '}, size(dataInCells,1), 1)];
-        %     out = ['\t \t ', strjoin(out','\t \t ')];
-        %     out = [strjoin(columnHeaders, '\t \t'), '\r ', out];
-        % %    out = strrep(evalc('disp([strtrim(columnHeaders''); dataInCells])'), '\n', '\r');
-        % %    out = strrep(out, '\n', '\r');
-        
         columnHeaders = cellfun(@strtrim,columnHeaders,'uni',0);
         out = sprintf([repmat('\t%s',1,length(columnHeaders)), '\r'],columnHeaders{:});
         for row = 1:size(dataInCells,1)

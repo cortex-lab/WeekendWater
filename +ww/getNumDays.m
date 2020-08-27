@@ -7,6 +7,10 @@ function [nDays, fail] = getNumDays()
 params = ww.Params;
 nDays = params.get('nDaysInFuture');
 fail = false;
+if isempty(params.get('CAL_API_KEY')) || isempty(params.get('CAL_API_URL'))
+    disp('Calendar API not configured; skipping')
+    return
+end
 try
     options = weboptions('MediaType', 'application/json', 'Timeout', 10);
     options.MediaType = 'application/x-www-form-urlencoded';

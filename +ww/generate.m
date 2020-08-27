@@ -1,6 +1,5 @@
 function generate()
 % GENERATE Create a list of subjects and dates to be trained on weekend
-% 
 
 % Ensure we're on the correct branch and up-to-date
 git.runCmd({'checkout dev', 'pull'}, 'dir', getOr(dat.paths, 'rigbox'));
@@ -69,7 +68,7 @@ if ~isempty(skipped) && ~test
 end
 
 % print nicely, 'water.png' will be saved in the current folder
-data = printWeekendWater(data, params.get('Email_format'));
+data = formatTable(data, params.get('Email_format'));
 
 % Get list of email recipients
 recipients = strip(lower(params.get('Email_recipients')));
