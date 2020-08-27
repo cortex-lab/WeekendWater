@@ -26,7 +26,7 @@ This is designed to work with Rigbox and Alyx.
 Parameters can be updated using the `ww.Params` class, or by simply re-running `ww.setup`.  Below shows how to change the number of future weekend days to 3:
 ```
 params = ww.Params;
-params.set('nFutureDays', 3)
+params.set('nDaysInFuture', 3)
 params.save
 ```
 
