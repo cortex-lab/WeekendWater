@@ -1,14 +1,37 @@
-function generate(force)
+function generate(nDays, varargin)
 % GENERATE Create a list of subjects and dates to be trained on weekend
+%
+%  Inputs:
+%    nDays: The number of day in the future to post water for.  If empty or
+%           not defined, the 'nDaysInFuture' parameter is used (adjusted  
+%           for bank holidays)
+%
+%  Named Parameters:
+%    force: When true the script is run regardless of the 'minLastSent' 
+%           parameter (default: false)
+%    test: When true the script is run in test mode (default: false)
+%
+%  Examples:
+%    % Run using standard defaults (2 days in future)
+%    ww.generate
+%
+%    % Post water for 3 days in future, regardless of when it was last run
+%    ww.generate(3, 'force', true)
 
 % Ensure we're on the correct branch and up-to-date
 git.runCmd({'checkout dev', 'pull'}, 'dir', getOr(dat.paths, 'rigbox'));
 
 % Load the parameters
 params = ww.Params;
-test = params.get('Mode') == 2;
 admins = strip(lower(params.get('Email_admins')));
-if nargin == 0, force = false; end
+
+% Parse input arguments (override params)
+p = inputParser;
+p.addParameter('force', false, @islogical)
+p.addParameter('test', params.get('Mode') == 2, @islogical)
+p.parse(varargin{:})
+force = p.Results.force;
+test = p.Results.test;
 
 % Get list of mice to be trained over the weekend.  These will be marked as
 % 'PIL' on the list (so long as they've been weighed)
@@ -39,12 +62,14 @@ for prop = string(fieldnames(internetPrefs))'
     setpref('Internet', prop, params.get(prop))
 end
 
-% use 2 for usual weekends, 3 for long weekends etc.
-[nDays, fail] = ww.getNumDays();
-if fail && ~test
-  sendmail(admins, 'Action required: Days may be incorrect',...
-    ['Weekend water script failed to determine whether there are any upcoming ',...
-    'Bank holidays.  Investigate']);
+if nargin == 0 || isempty(nDays)
+    % use 2 for usual weekends, 3 for long weekends etc.
+    [nDays, fail] = ww.getNumDays();
+    if fail && ~test
+      sendmail(admins, 'Action required: Days may be incorrect',...
+        ['Weekend water script failed to determine whether there are '...
+         'any upcoming Bank holidays.  Investigate.']);
+    end
 end
 
 % Alyx instance

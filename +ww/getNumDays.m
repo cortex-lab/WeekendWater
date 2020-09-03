@@ -4,8 +4,10 @@ function [nDays, fail] = getNumDays()
 %   up-coming bank holidays.  NB: This script doesn't support
 %   non-sequential dates (e.g. Saturday, Sunday and Tuesday), or
 %   nDaysInFuture > 5.
+
 params = ww.Params;
 nDays = params.get('nDaysInFuture');
+assert(nDays < 6, 'Cannot post water for more than 5 days in the future')
 fail = false;
 if isempty(params.get('CAL_API_KEY')) || isempty(params.get('CAL_API_URL'))
     disp('Calendar API not configured; skipping')
