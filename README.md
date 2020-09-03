@@ -20,7 +20,9 @@ This is designed to work with Rigbox and Alyx.
 2. In MATLAB, add the WeekendWater repository to your paths (e.g. `addpath('WeekendWater')`)
 3. Follow [these instructions](http://cortex-lab.github.io/Rigbox/paths_config.html) on how to set up your Rigbox paths file.  You will need to ensure that the `gitExe` field points to your installed Git Bash executable, and the `mainRepository` is where your parameterProfiles.mat file will be saved (where subjects marked for weekend training are stored).
 4. In MATLAB, run `ww.setup` and follow the steps to set the required parameters.
-5. To run the script, say, every Friday, create a task on [Windows Scheduler](https://windowsreport.com/schedule-tasks-windows-10/).  Add an action to start a program.  The program should be MATLAB (i.e. `"C:\Program Files\MATLAB\R2018b\bin\matlab.exe"`) and the arguments should be `-r "ww.generate;exit"`.
+5. To run the script, say, every Friday, create a task on [Windows Scheduler](https://windowsreport.com/schedule-tasks-windows-10/).  Add an action to start a program.  The program should be MATLAB (i.e. `"C:\Program Files\MATLAB\R2018b\bin\matlab.exe"`) and the arguments should be `-r "ww.generate;exit"`*.
+
+*To ensure that MATLAB returns, even after errors, use `-r "exit(run_safe)"`
 
 ## Updating parameters
 Parameters can be updated using the `ww.Params` class, or by simply re-running `ww.setup`.  Below shows how to change the number of future weekend days to 3:

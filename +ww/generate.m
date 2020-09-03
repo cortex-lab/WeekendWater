@@ -15,12 +15,16 @@ excl = dat.loadParamProfiles('WeekendWater');
 if isempty(fieldnames(excl)), excl = struct; end
 
 % Path to email file which will be sent
-mail = fullfile(iff(ispc, getenv('APPDATA'), getenv('HOME')), 'mail.txt');
-% mod = file.modDate(mail);
-% Check if email was generated in the past 2 days
-% if ~isempty(mod) && (now - file.modDate(which('dat.paths')) < 2)
-%     return
-% end
+filename = sprintf('mail%s.txt', iff(test, '-test', ''));
+mail = fullfile(iff(ispc, getenv('APPDATA'), getenv('HOME')), filename);
+
+% Check when email was last generated and potentially return if too soon
+mod = file.modDate(mail);
+minLastSent = params.get('minLastSent'); % min number of days before next
+if ~test && ~isempty(mod) && (now - mod < minLastSent)
+    fprintf('Email already sent in last %.2g days\n', minLastSent)
+    return
+end
 
 % Set email prefs for sending the email
 % TODO These may no longer be required as we use curl
@@ -35,7 +39,7 @@ for prop = string(fieldnames(internetPrefs))'
 end
 
 % use 2 for usual weekends, 3 for long weekends etc.
-[nDays, fail] = getNumDays();
+[nDays, fail] = ww.getNumDays();
 if fail && ~test
   sendmail(admins, 'Action required: Days may be incorrect',...
     ['Weekend water script failed to determine whether there are any upcoming ',...
@@ -54,7 +58,7 @@ ai = ai.login(params.get('ALYX_Login'), params.get('ALYX_Password'));
 users = ai.getData('users');
 
 % Extract the data from alyx and give water to whomever needs it
-[data, skipped] = getWeekendWater(ai, nDays, excl);
+[data, skipped] = ww.getWeekendWater(ai, nDays, excl);
 if height(data) == 0, return, end  % Return if there are no restricted mice
 
 if ~isempty(skipped) && ~test
@@ -68,12 +72,12 @@ if ~isempty(skipped) && ~test
 end
 
 % print nicely, 'water.png' will be saved in the current folder
-data = formatTable(data, params.get('Email_format'));
+data = ww.formatTable(data, params.get('Email_format'));
 
 % Get list of email recipients
 recipients = strip(lower(params.get('Email_recipients')));
 % In test mode only send to admin, otherwise send to all recipients and admins
-to = iff(test, admins{1}, union(recipients, admins));
+to = iff(test, admins(1), union(recipients, admins));
 
 %%  'Weekend water',...
 % Write email to file
@@ -105,9 +109,11 @@ cmd = sprintf(['curl "%s:%i" -v --mail-from "%s" ',...
 gitExe = getOr(dat.paths, 'gitExe');
 bashPath = fullfile(gitExe(1:end-11), 'git-bash.exe');
 bash = @(cmd)['"',bashPath,'" -c "',cmd,'"'];
-system(bash(cmd), '-echo'); % Send email
+failed = system(bash(cmd), '-echo'); % Send email
+
+assert(~failed, 'failed to send email')
 
 % Restore previous preferences
 for prop = string(fieldnames(internetPrefs))'
-    setpref('Internet', prop, s.(prop))
+    setpref('Internet', prop, internetPrefs.(prop))
 end

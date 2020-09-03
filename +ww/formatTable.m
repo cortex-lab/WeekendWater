@@ -9,6 +9,8 @@ function out = formatTable(data, format)
 %    format (char): Formats include 'png', 'tsv', 'html'.  If no format is 
 %                   specified, a tab separated string is returned.  If
 %                   'tsv' a file is also saved to disk.
+%
+% TODO Improve debugging mode
 
 if nargin == 1; format = ''; end
 dataInCells = table2cell(data);
@@ -56,7 +58,9 @@ switch lower(format)
         end
         out = [out, '</table>'];
         %%% FOR DEBUGGING %%%
-        save printWeekendWaterVars.mat
+        if ww.Params().get('Mode') > 0
+            save(fullfile(userpath, 'printWeekendWaterVars.mat'))
+        end
         %%%
     otherwise
         columnHeaders = cellfun(@strtrim,columnHeaders,'uni',0);

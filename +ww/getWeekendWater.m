@@ -1,5 +1,6 @@
 function [data, skipped] = getWeekendWater(ai, nDaysInFuture, exclude)
 % WW.GETWEEKENDWATER Builds a table of water amounts and posts to Alyx
+%   TODO Create log instead of dumping vars to file in debug mode
 if nargin<2
     nDaysInFuture = 2;
 end
@@ -72,7 +73,9 @@ for iSubject = 1:nSubjects
     end
 end
 %%% FOR DEBUGGING %%%
-save getWeekendWaterVars.mat
+if ww.Params().get('Mode') > 0
+    save(fullfile(userpath, 'getWeekendWaterVars.mat'))
+end
 %%%
 % collect the data for the table
 data = table(animalName, prcWeightToday, giveWater);
