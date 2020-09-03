@@ -1,4 +1,4 @@
-function generate()
+function generate(force)
 % GENERATE Create a list of subjects and dates to be trained on weekend
 
 % Ensure we're on the correct branch and up-to-date
@@ -8,6 +8,7 @@ git.runCmd({'checkout dev', 'pull'}, 'dir', getOr(dat.paths, 'rigbox'));
 params = ww.Params;
 test = params.get('Mode') == 2;
 admins = strip(lower(params.get('Email_admins')));
+if nargin == 0, force = false; end
 
 % Get list of mice to be trained over the weekend.  These will be marked as
 % 'PIL' on the list (so long as they've been weighed)
@@ -21,7 +22,7 @@ mail = fullfile(iff(ispc, getenv('APPDATA'), getenv('HOME')), filename);
 % Check when email was last generated and potentially return if too soon
 mod = file.modDate(mail);
 minLastSent = params.get('minLastSent'); % min number of days before next
-if ~test && ~isempty(mod) && (now - mod < minLastSent)
+if ~force && ~test && ~isempty(mod) && (now - mod < minLastSent)
     fprintf('Email already sent in last %.2g days\n', minLastSent)
     return
 end
