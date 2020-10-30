@@ -49,14 +49,18 @@ switch lower(format)
     case 'html'
         dataInCells(cellfun('isempty', dataInCells)) = {' '};
         % Print the headers
-        out = ['<table style="width:100%"><tr><th style="padding:5px">', ...
-            strjoin(strip(columnHeaders), '</th><th style="padding:5px">'), '</th></tr>'];
-        % Print each row
+        out = sprintf(...
+            '<table style="width:100%%">\n<tr>\n\t<th style="padding:5px">%s</th>\n</tr>',....
+            strjoin(strip(columnHeaders), '</th>\n\t<th style="padding:5px">'));
+        % Print each row - 
+        % NB: Line breaks are essential to avoid 1000 charecter line limit.
         for i = 1:size(dataInCells,1)
-            out = [out, '<tr><td style="padding:5px">', strjoin(dataInCells(i,:), ...
-                '</td><td style="padding:5px">'), '</td></tr>'];
+            rowStr = sprintf(...
+                '\n<tr>\n\t<td style="padding:5px">%s</td>\n</tr>',...
+                strjoin(dataInCells(i,:), '</td>\n\t<td style="padding:5px">'));
+            out = [out, rowStr];
         end
-        out = [out, '</table>'];
+        out = [out, newline, '</table>'];
         %%% FOR DEBUGGING %%%
         if ww.Params().get('Mode') > 0
             save(fullfile(userpath, 'printWeekendWaterVars.mat'))
