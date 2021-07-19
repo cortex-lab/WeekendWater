@@ -25,7 +25,7 @@ disp('...Press return to keep unchanged...')
 prompt = sprintf('SMTP server address: (%s)', params.get('SMTP_Server'));
 reply = input(prompt,'s');
 if ~isempty(reply)
-    params.set('SMTP_Server') = reply;
+    params.set('SMTP_Server',reply);
 end
 prompt = sprintf('SMTP server port: (%i)', params.get('SMTP_Port'));
 reply = input(prompt);
@@ -39,6 +39,12 @@ if ~isempty(reply), params.set('SMTP_Username', reply); end
 fprintf('Account password: \n');
 reply = passwordUI();
 if ~isempty(reply), params.set('SMTP_Password', reply); end
+% Email address may be the same as the STMP login
+default = iff(params.get('E_mail'),...
+    params.get('E_mail'), params.get('SMTP_Username'));
+prompt = sprintf('Account email: (%s)', default);
+reply = input(prompt,'s');
+params.set('E_mail', iff(reply, reply, default));
 
 % --------ALYX--------
 disp('Alyx user account to use...')
@@ -90,13 +96,13 @@ if ~isempty(reply), params.set('minLastSent', reply); end
 disp('Setting up email recipients...')
 disp('Please enter a single email in quotes, or a cell array of emails')
 prompt = sprintf('Email admin(s) (to recieve warnings, etc.): (%s) ',...
-    strjoin(params.get('Email_admins'), ', '));
+    strjoin(ensureCell(params.get('Email_admins')), ', '));
 reply = input(prompt);
 if ~isempty(reply)
     params.set('Email_admins', ensureCell(reply));
 end
 prompt = sprintf('Email recipients(s) (to recieve water list): (%s) ',...
-    strjoin(params.get('Email_recipients'), ', '));
+    strjoin(ensureCell(params.get('Email_recipients')), ', '));
 reply = input(prompt);
 if ~isempty(reply)
     params.set('Email_recipients', ensureCell(reply));
