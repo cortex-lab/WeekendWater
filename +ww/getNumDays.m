@@ -27,7 +27,7 @@ try
     % Filter out impertinant dates
     bank_holiday = cellfun(@(type) any(endsWith(type, 'holiday')) ,{holidays.type});
     regional = strcmp({holidays.locations}, 'All');
-    if strcmp(params.get('CAL_Region'), 'English')
+    if strcmp(params.get('CAL_Region'), 'England')
         % Exclude Scottish holidays, etc.
         regional = regional | contains({holidays.locations}, 'ENG');
     end
