@@ -22,6 +22,13 @@ try
         params.get('CAL_API_URL'), params.get('CAL_Country'), V(1), ...
         params.get('CAL_Region'), params.get('CAL_API_KEY'));
     data = webread(fullEndpoint, options);
+    if params.get('Mode') > 0 % Print URL and response code
+        fprintf('GET %d %s %s %s', ...
+            data.meta.code, ...
+            params.get('CAL_API_URL'), ...
+            params.get('CAL_Country'), ...
+            params.get('CAL_Region'))
+    end
     holidays = data.response.holidays;
     
     % Filter out impertinant dates
@@ -36,6 +43,7 @@ try
     holidays = cellfun(@(s) datenum(s.iso, 'yyyy-mm-dd'), {holidays.date});
     % Add any holidays coming in the next week
     nDays = nDays + sum(holidays-now < 5 & holidays-now > 0);
-catch
+catch ex
+    warning(ex.identifier, '%s', ex.message)
     fail = true;
 end
