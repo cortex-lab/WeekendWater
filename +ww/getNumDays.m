@@ -8,6 +8,7 @@ function [nDays, fail] = getNumDays()
 params = ww.Params;
 nDays = params.get('nDaysInFuture');
 assert(nDays < 6, 'Cannot post water for more than 5 days in the future')
+maxTries = 3;
 fail = false;
 if isempty(params.get('CAL_API_KEY')) || isempty(params.get('CAL_API_URL'))
     disp('Calendar API not configured; skipping')
@@ -21,7 +22,20 @@ try
     fullEndpoint = sprintf('%s?country=%s&year=%d&region=%s&api_key=%s', ...
         params.get('CAL_API_URL'), params.get('CAL_Country'), V(1), ...
         params.get('CAL_Region'), params.get('CAL_API_KEY'));
-    data = webread(fullEndpoint, options);
+
+    % We sometimes get a timeout so let's try a few times
+    for i = 1:maxTries
+        try
+            data = webread(fullEndpoint, options);
+        catch ex
+            if strcmp(ex.identifier, 'MATLAB:webservices:Timeout') && i < maxTries
+                warning(ex.identifier, 'Calendar API response timeout, retrying...')
+            else
+                rethrow(ex)
+            end
+        end
+    end
+
     if params.get('Mode') > 0 % Print URL and response code
         fprintf('GET %d %s %s %s', ...
             data.meta.code, ...
