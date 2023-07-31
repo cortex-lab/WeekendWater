@@ -75,9 +75,12 @@ if nargin == 0 || isempty(nDays)
     % use 2 for usual weekends, 3 for long weekends etc.
     [nDays, fail] = ww.getNumDays();
     if fail && ~test
-      sendmail(admins, 'Action required: Days may be incorrect',...
-        ['Weekend water script failed to determine whether there are '...
-         'any upcoming Bank holidays.  Investigate.']);
+        recipients = admins;
+        for iRecipient = 1:numel(recipients)
+            sendmail(recipients{iRecipient}, 'Action required: Days may be incorrect',...
+            ['Weekend water script failed to determine whether there are '...
+            'any upcoming Bank holidays.  Investigate.']);
+        end
     end
 end
 
@@ -98,12 +101,20 @@ if height(data) == 0, return, end  % Return if there are no restricted mice
 
 if ~isempty(skipped) && ~test
     msg = sprintf(['The following mice have no weekend water information:\n\r %s\n\r',...
-   'This occured because a weight for today was not inputted into Alyx before 6pm. \n',...
+    'This occured because a weight for today was not inputted into Alyx before 6pm. \n',...
     'Please manually write the weight and water to be given on the paper sheet upstairs. ',...
     'For the days you will be training, please write ''PIL''.'], strjoin({skipped.subject}, '\n'));
     [~,I] = intersect({users.username}, {skipped.user});
-    sendmail(vertcat(users(I).email, admins),...
-      'Action required: Weekend information missing', msg);
+%     sendmail(vertcat(users(I).email, admins),...
+%       'Action required: Weekend information missing', msg);
+    % Single-instance message headers must be included only once in a
+    % message (RFC 5322). Multiple recipients to sendmail duplicates 'To'
+    % field, so we'll send one email per recipient instead.
+    recipients = vertcat(users(I).email, admins);
+    for iRecipient = 1:numel(recipients)
+        sendmail(recipients{iRecipient}, 'Action required: Weekend information missing', msg);
+    end
+
 end
 
 % print nicely, 'water.png' will be saved in the current folder
