@@ -45,6 +45,11 @@ for iSubject = 1:nSubjects
     end
     weightPrc = records(1).percentage_weight;
 
+    endpnt = ['subjects/', subject];
+    wa = getOr(ai.getData(endpnt), 'water_administrations');
+    wa_dates = floor(datenum({wa.date_time}, 'yyyy-mm-ddTHH:MM:SS'));
+
+
     animalName{iSubject} = subject;
     prcWeightToday{iSubject} = num2str(weightPrc, '%4.2f');
 %     prcWeightToday(iSubject) = round(weightPrc(1)*1000)/10;
@@ -55,11 +60,19 @@ for iSubject = 1:nSubjects
             waterValues{iSubject, iDay} = 'Skipped';
         else
             try
-                iRecord = strcmp(datestr(now+iDay,'yyyy-mm-dd'),{records.date});
-                gw = records(iRecord).given_water_total;
-                assert(gw > 0)
-                giveWater{iSubject, iDay} = num2str(gw, '%4.2f');
-                waterValues{iSubject, iDay} = gw;
+                % checking if ad lib water is requested for that day
+                % if there is any water administration that is adlib for that day, give adlib
+                giveAdlib = any([wa(ismember(wa_dates, floor(datenum(now+iDay)))).adlib]);
+                if giveAdlib
+                    giveWater{iSubject, iDay} = 'CA WATER';
+                    waterValues{iSubject, iDay} = 'ad lib';
+                else
+                    iRecord = strcmp(datestr(now+iDay,'yyyy-mm-dd'),{records.date});
+                    gw = records(iRecord).given_water_total;
+                    assert(gw > 0)
+                    giveWater{iSubject, iDay} = num2str(gw, '%4.2f');
+                    waterValues{iSubject, iDay} = gw;
+                end
             catch
                 iRecord = strcmp(datestr(now,'yyyy-mm-dd'),{records.date});
                 gw = round(records(iRecord).expected_water, 2) + 0.05;

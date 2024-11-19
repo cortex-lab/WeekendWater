@@ -45,9 +45,13 @@ for iSubject = 1:nSubjects
     end
     weightPrc = records(1).percentage_weight;
 
+    endpnt = ['subjects/', subject];
+    wa = getOr(ai.getData(endpnt), 'water_administrations');
+    wa_dates = floor(datenum({wa.date_time}, 'yyyy-mm-ddTHH:MM:SS'));
+
     animalName{iSubject} = subject;
     prcWeightToday{iSubject} = num2str(weightPrc, '%4.2f');
-%     prcWeightToday(iSubject) = round(weightPrc(1)*1000)/10;
+    %     prcWeightToday(iSubject) = round(weightPrc(1)*1000)/10;
     for iDay = 1:nDaysInFuture
         doExclude = ismember(subject, fieldnames(exclude));
         if doExclude && any(floor([exclude.(subject)]) == floor(now+iDay))
@@ -55,18 +59,30 @@ for iSubject = 1:nSubjects
             waterValues{iSubject, iDay} = 'Skipped';
         else
             try
-                iRecord = strcmp(datestr(now+iDay,'yyyy-mm-dd'),{records.date});
-                gw = records(iRecord).given_water_total;
-                assert(gw > 0)
-                giveWater{iSubject, iDay} = num2str(gw, '%4.2f');
-                waterValues{iSubject, iDay} = gw;
+                % checking if ad lib water is requested for that day
+                % if there is any water administration that is adlib for that day, give adlib
+                giveAdlib = any([wa(ismember(wa_dates, floor(datenum(now+iDay)))).adlib]);
+                if giveAdlib
+%                     wa_ontheday = wa(ismember(wa_dates, floor(datenum(now+iDay))));
+%                     ind = find([wa_ontheday.adlib], 1, 'last');
+%                     water_type = wa_ontheday(ind).water_type;
+%                     giveWater{iSubject, iDay} = sprintf('BOTTLE (%s)', water_type);
+                    giveWater{iSubject, iDay} = 'CA WATER';
+                    waterValues{iSubject, iDay} = 'ad lib';
+                else
+                    iRecord = strcmp(datestr(now+iDay,'yyyy-mm-dd'),{records.date});
+                    gw = records(iRecord).given_water_total;
+                    assert(gw > 0)
+                    giveWater{iSubject, iDay} = num2str(gw, '%4.2f');
+                    waterValues{iSubject, iDay} = gw;
+                end
             catch
                 iRecord = strcmp(datestr(now,'yyyy-mm-dd'),{records.date});
                 gw = round(records(iRecord).expected_water, 2) + 0.05;
                 giveWater{iSubject, iDay} = num2str(gw, '%4.2f');
                 % post water here
                 % We are not posting water during simulation run
-%                 ai.postWater(sssssubjectttt, gw, now + iDay, 'Water');
+                %                 ai.postWater(sssssubjectttt, gw, now + iDay, 'Water');
                 waterValues{iSubject, iDay} = gw;
                 advancedPost(iSubject, iDay) = false;
             end
