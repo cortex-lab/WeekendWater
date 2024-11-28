@@ -19,7 +19,7 @@ nDays = size(dataInCells{1, 3}, 2);
 nAnimals = height(data);
 waterAmounts = reshape([dataInCells{:, 3}], nDays, nAnimals)';
 dataInCells = cat(2, dataInCells(:, 1:2), waterAmounts);
-columnHeaders = {'  Animal  '; ['  Weight % on ', datestr(now, 'dddd  ')]};
+columnHeaders = {'Animal'; ['  Weight % on ', datestr(now, 'dddd  ')]};
 for iDay = 1:nDays
     columnHeaders{iDay+2} = datestr(now+iDay, '  ddd, dd-mmm-yyyy  ');
 end
@@ -50,14 +50,14 @@ switch lower(format)
         dataInCells(cellfun('isempty', dataInCells)) = {' '};
         % Print the headers
         out = sprintf(...
-            '<table style="width:100%%">\n<tr>\n\t<th style="padding:5px">%s</th>\n</tr>',....
-            strjoin(strip(columnHeaders), '</th>\n\t<th style="padding:5px">'));
+            '<table style="width: 100%%; table-layout: auto;">\n<tr>\n\t<th style="padding: 10px;">%s</th>\n</tr>',....
+            strjoin(strip(columnHeaders), '</th>\n\t<th style="padding: 10px;">'));
         % Print each row - 
         % NB: Line breaks are essential to avoid 1000 charecter line limit.
         for i = 1:size(dataInCells,1)
             rowStr = sprintf(...
-                '\n<tr>\n\t<td style="padding:5px">%s</td>\n</tr>',...
-                strjoin(dataInCells(i,:), '</td>\n\t<td style="padding:5px">'));
+                '\n<tr>\n\t<td style="padding: 10px;">%s</td>\n</tr>',...
+                strjoin(dataInCells(i,:), '</td>\n\t<td style="padding: 10px;">'));
             out = [out, rowStr];
         end
         out = [out, newline, '</table>'];

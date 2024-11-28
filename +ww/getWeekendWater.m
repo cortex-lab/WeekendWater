@@ -62,10 +62,13 @@ for iSubject = 1:nSubjects
             try
                 % checking if ad lib water is requested for that day
                 % if there is any water administration that is adlib for that day, give adlib
-                giveAdlib = any([wa(ismember(wa_dates, floor(datenum(now+iDay)))).adlib]);
-                if giveAdlib
-                    giveWater{iSubject, iDay} = 'CA WATER';
-                    waterValues{iSubject, iDay} = 'ad lib';
+                adlibs = ismember(wa_dates, floor(datenum(now+iDay))) & [wa.adlib]';
+                if any(adlibs)
+                    waterType = {wa(adlibs).water_type};
+                    value = strrep(waterType{1}, 'Water', 'H20');
+                    value = strrep(value, 'Citric Acid', 'CA');
+                    giveWater{iSubject, iDay} = value;
+                    waterValues{iSubject, iDay} = value;
                 else
                     iRecord = strcmp(datestr(now+iDay,'yyyy-mm-dd'),{records.date});
                     gw = records(iRecord).given_water_total;
